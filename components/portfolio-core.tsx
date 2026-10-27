@@ -113,7 +113,7 @@ export function PortfolioCore({
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="Estimated wallet value" value={isLoading ? null : formatUsd(totals.portfolio)} />
         <Stat label="USDT balance" value={isLoading ? null : formatUsd(usdtBalance)} accent />
-        <Stat label="Assets found" value={isLoading ? null : String(assets.length)} />
+        <Stat label="Sellable assets" value={isLoading ? null : String(selectableAssets.length)} />
       </div>
 
       <DestinationSelect
@@ -183,6 +183,11 @@ export function PortfolioCore({
       {truncated ? (
         <p className="text-center text-xs text-warning" role="status">
           The wallet contains more assets than can be displayed at once. Refresh after selling this batch to load the next set.
+        </p>
+      ) : null}
+      {!isLoading && !error && assets.length > selectableAssets.length ? (
+        <p className="text-pretty text-center text-xs leading-relaxed text-muted-foreground">
+          {assets.length - selectableAssets.length} base asset{assets.length - selectableAssets.length === 1 ? '' : 's'} {assets.length - selectableAssets.length === 1 ? 'is' : 'are'} shown separately and excluded from this sell count. Unknown tokens with a non-zero on-chain balance are included so you can review them before selling.
         </p>
       ) : null}
       <p className="text-pretty text-center text-xs leading-relaxed text-muted-foreground">{feeNote}</p>
