@@ -99,9 +99,10 @@ export async function getPortfolio(address: string): Promise<{ assets: Asset[]; 
   balances.set(SOL_MINT, { raw: swappableLamports + (wsol?.raw ?? BigInt(0)), decimals: 9 })
 
   const usdtRaw = balances.get(USDT_MINT)?.raw ?? BigInt(0)
-  balances.delete(USDT_MINT)
 
-  const nonZero = [...balances.keys()].filter((m) => (balances.get(m)?.raw ?? BigInt(0)) > BigInt(0))
+  const nonZero = [...balances.keys()].filter(
+    (m) => m !== USDT_MINT && (balances.get(m)?.raw ?? BigInt(0)) > BigInt(0),
+  )
   const mints = nonZero.includes(SOL_MINT)
     ? [SOL_MINT, ...nonZero.filter((m) => m !== SOL_MINT)].slice(0, MAX_TRACKED_MINTS)
     : nonZero.slice(0, MAX_TRACKED_MINTS)
@@ -125,6 +126,24 @@ export async function getPortfolio(address: string): Promise<{ assets: Asset[]; 
       verified: Boolean(meta?.isVerified),
     }
   })
+
+  if (usdtRaw > BigInt(0)) {
+    const meta = info.get(USDT_MINT)
+    const uiAmount = Number(usdtRaw) / 1e6
+    const usdPrice = meta?.usdPrice ?? 1
+    assets.push({
+      mint: USDT_MINT,
+      symbol: meta?.symbol ?? 'USDT',
+      name: meta?.name ?? 'Tether USD',
+      icon: meta?.icon ?? null,
+      decimals: 6,
+      amount: usdtRaw.toString(),
+      uiAmount,
+      usdPrice,
+      usdValue: uiAmount * usdPrice,
+      verified: meta?.isVerified ?? true,
+    })
+  }
 
   assets.sort((a, b) => (b.usdValue ?? -1) - (a.usdValue ?? -1))
 
