@@ -9,22 +9,23 @@ type Props = {
   asset: Asset
   selected: boolean
   status?: ConversionStatus
+  destination: boolean
   disabled: boolean
   onToggle: () => void
 }
 
-export function AssetRow({ asset, selected, status, disabled, onToggle }: Props) {
+export function AssetRow({ asset, selected, status, destination, disabled, onToggle }: Props) {
   return (
     <li
       className={`flex items-center gap-3 px-4 py-3.5 transition-colors sm:gap-4 sm:px-5 ${
-        selected ? 'bg-accent/30' : 'hover:bg-muted/40'
+        selected ? 'bg-accent/30' : destination ? 'bg-accent/15' : 'hover:bg-muted/40'
       }`}
     >
       <SelectionCheckbox
         checked={selected}
         onChange={onToggle}
-        disabled={disabled}
-        label={`${selected ? 'Deselect' : 'Select'} ${asset.symbol}`}
+        disabled={disabled || destination}
+        label={destination ? `${asset.symbol} is the destination token` : `${selected ? 'Deselect' : 'Select'} ${asset.symbol}`}
       />
 
       <TokenIcon icon={asset.icon} symbol={asset.symbol} />
@@ -45,10 +46,10 @@ export function AssetRow({ asset, selected, status, disabled, onToggle }: Props)
       </div>
 
       <div className="hidden w-28 justify-end sm:flex">
-        <StatusBadge status={status} />
+        {destination ? <DestinationBadge /> : <StatusBadge status={status} />}
       </div>
       <div className="flex sm:hidden">
-        <StatusBadge status={status} compact />
+        {destination ? <DestinationBadge compact /> : <StatusBadge status={status} compact />}
       </div>
     </li>
   )
@@ -65,6 +66,14 @@ function TokenIcon({ icon, symbol }: { icon: string | null; symbol: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img src={icon} alt="" width={36} height={36} loading="lazy" className="size-9 shrink-0 rounded-full bg-muted object-cover" />
+  )
+}
+
+function DestinationBadge({ compact }: { compact?: boolean }) {
+  return (
+    <span className="inline-flex items-center rounded-full bg-accent px-2 py-1 text-xs font-medium text-accent-foreground">
+      {compact ? 'Target' : 'Destination'}
+    </span>
   )
 }
 

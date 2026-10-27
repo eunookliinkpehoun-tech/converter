@@ -19,6 +19,13 @@ export type Asset = {
   verified: boolean
 }
 
+export type SwapTarget = Pick<Asset, 'mint' | 'symbol' | 'name' | 'decimals' | 'icon'>
+
+export const DEFAULT_SWAP_TARGETS: SwapTarget[] = [
+  { mint: USDT_MINT, symbol: 'USDT', name: 'Tether USD', decimals: 6, icon: null },
+  { mint: SOL_MINT, symbol: 'SOL', name: 'Solana', decimals: 9, icon: null },
+]
+
 export type PortfolioResponse = {
   assets: Asset[]
   usdtBalance: number
@@ -29,5 +36,5 @@ export type ConversionStatus =
   | { state: 'quoting' }
   | { state: 'awaiting-signature' }
   | { state: 'executing' }
-  | { state: 'success'; signature: string; usdtReceived: number }
+  | { state: 'success'; signature: string; received: number; outputSymbol: string }
   | { state: 'failed'; error: string }

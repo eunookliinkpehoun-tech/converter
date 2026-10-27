@@ -10,8 +10,8 @@ export function MissingConfig() {
         <h1 className="text-balance text-xl font-semibold">Privy App ID required</h1>
         <p className="mt-3 text-pretty text-sm leading-relaxed text-muted-foreground">
           Add <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">NEXT_PUBLIC_PRIVY_APP_ID</code>{' '}
-          in the Vars section of the project settings to enable wallet connection. You can create an app ID for free at
-          dashboard.privy.io.
+          in the Vars section of project settings. This is a public client ID, not a wallet secret. Also allow your site
+          domain in the Privy dashboard before enabling wallet sign-in.
         </p>
       </div>
     </main>

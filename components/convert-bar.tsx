@@ -2,18 +2,19 @@
 
 import { ArrowRightLeft, CheckCircle2, Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { formatUsd } from '@/lib/format'
+import { formatAmount, formatUsd } from '@/lib/format'
 
 type Props = {
   count: number
   estimate: number
   running: boolean
   received: number | null
+  destinationSymbol: string
   onConvert: () => void
   onDismiss: () => void
 }
 
-export function ConvertBar({ count, estimate, running, received, onConvert, onDismiss }: Props) {
+export function ConvertBar({ count, estimate, running, received, destinationSymbol, onConvert, onDismiss }: Props) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -23,7 +24,7 @@ export function ConvertBar({ count, estimate, running, received, onConvert, onDi
             <div>
               <p className="text-sm font-medium">Conversion complete</p>
               <p className="text-xs text-muted-foreground">
-                Received <span className="font-mono text-foreground">{formatUsd(received)}</span> USDT
+                Received <span className="font-mono text-foreground">{formatAmount(received)} {destinationSymbol}</span>
               </p>
             </div>
             <Button variant="ghost" size="icon" onClick={onDismiss} aria-label="Dismiss summary" className="ml-auto sm:ml-2">
@@ -36,7 +37,7 @@ export function ConvertBar({ count, estimate, running, received, onConvert, onDi
               {count} {count === 1 ? 'asset' : 'assets'} selected
             </p>
             <p className="text-xs text-muted-foreground">
-              Estimated <span className="font-mono text-foreground">{formatUsd(estimate)}</span> USDT before fees
+              Estimated value <span className="font-mono text-foreground">{formatUsd(estimate)}</span> before fees
             </p>
           </div>
         )}
@@ -50,12 +51,12 @@ export function ConvertBar({ count, estimate, running, received, onConvert, onDi
           {running ? (
             <>
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              Converting…
+              Converting to {destinationSymbol}…
             </>
           ) : (
             <>
               <ArrowRightLeft className="size-4" aria-hidden="true" />
-              Convert all to USDT
+              Convert to {destinationSymbol}
             </>
           )}
         </Button>

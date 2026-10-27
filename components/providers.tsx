@@ -4,6 +4,7 @@ import { PrivyProvider } from '@privy-io/react-auth'
 import { toSolanaWalletConnectors } from '@privy-io/react-auth/solana'
 import type { ReactNode } from 'react'
 import { MissingConfig } from '@/components/missing-config'
+import { SOLANA_WALLET_LIST } from '@/lib/solana-wallets'
 
 const solanaConnectors = toSolanaWalletConnectors({ shouldAutoConnect: true })
 
@@ -21,16 +22,7 @@ export function Providers({ children }: { children: ReactNode }) {
           theme: 'dark',
           accentColor: '#2fcf9a',
           walletChainType: 'solana-only',
-          showWalletLoginFirst: true,
-          walletList: [
-            'phantom',
-            'detected_solana_wallets',
-            'solflare',
-            'backpack',
-            'jupiter',
-            'okx_wallet',
-            'wallet_connect_qr_solana',
-          ],
+          walletList: SOLANA_WALLET_LIST,
         },
         externalWallets: {
           solana: { connectors: solanaConnectors },

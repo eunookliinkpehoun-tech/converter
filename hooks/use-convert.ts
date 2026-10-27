@@ -2,7 +2,7 @@
 
 import { useSignTransaction, type ConnectedStandardSolanaWallet } from '@privy-io/react-auth/solana'
 import { useCallback, useState } from 'react'
-import type { Asset, ConversionStatus } from '@/lib/constants'
+import type { Asset, ConversionStatus, SwapTarget } from '@/lib/constants'
 import { base64ToBytes, bytesToBase64 } from '@/lib/format'
 
 // Jupiter orders carry a recent blockhash, so each batch is quoted right before it is signed.
@@ -65,7 +65,7 @@ export function useConvert(onFinished: () => void) {
   )
 
   const convert = useCallback(
-    async (assets: Asset[], wallet: ConnectedStandardSolanaWallet) => {
+    async (assets: Asset[], wallet: ConnectedStandardSolanaWallet, destination: SwapTarget) => {
       if (running || assets.length === 0) return
       setRunning(true)
       setStatuses(Object.fromEntries(assets.map((a) => [a.mint, { state: 'idle' } as ConversionStatus])))
@@ -84,6 +84,7 @@ export function useConvert(onFinished: () => void) {
             try {
               const order = await postJson<{ requestId: string; transaction: string }>('/api/swap/order', {
                 inputMint: asset.mint,
+                outputMint: destination.mint,
                 amount: asset.amount,
                 taker: wallet.address,
               })
@@ -91,7 +92,7 @@ export function useConvert(onFinished: () => void) {
             } catch (error) {
               setStatus([asset.mint], {
                 state: 'failed',
-                error: error instanceof Error ? error.message : 'No route to USDT',
+                error: error instanceof Error ? error.message : `No route to ${destination.symbol}`,
               })
             }
           }
@@ -130,7 +131,8 @@ export function useConvert(onFinished: () => void) {
                 setStatus([order.mint], {
                   state: 'success',
                   signature: result.signature,
-                  usdtReceived: Number(result.outAmount) / 1e6,
+                  received: Number(result.outAmount) / 10 ** destination.decimals,
+                  outputSymbol: destination.symbol,
                 })
               } catch (error) {
                 setStatus([order.mint], {

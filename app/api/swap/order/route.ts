@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { jupiterFetch } from '@/lib/jupiter'
-import { USDT_MINT } from '@/lib/constants'
 import { isPositiveIntegerString, isSolanaAddress } from '@/lib/validation'
 
 type OrderResponse = {
@@ -13,19 +12,29 @@ type OrderResponse = {
 }
 
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => null)) as { inputMint?: unknown; amount?: unknown; taker?: unknown } | null
+  const body = (await req.json().catch(() => null)) as {
+    inputMint?: unknown
+    outputMint?: unknown
+    amount?: unknown
+    taker?: unknown
+  } | null
 
-  if (!body || !isSolanaAddress(body.inputMint) || !isSolanaAddress(body.taker) || !isPositiveIntegerString(body.amount)) {
+  if (
+    !body ||
+    !isSolanaAddress(body.inputMint) ||
+    !isSolanaAddress(body.outputMint) ||
+    !isSolanaAddress(body.taker) ||
+    !isPositiveIntegerString(body.amount)
+  ) {
     return NextResponse.json({ error: 'Invalid swap request' }, { status: 400 })
   }
-  if (body.inputMint === USDT_MINT) {
-    return NextResponse.json({ error: 'Asset is already USDT' }, { status: 400 })
+  if (body.inputMint === body.outputMint) {
+    return NextResponse.json({ error: 'Source and destination assets must be different' }, { status: 400 })
   }
 
-  // Output is always USDT and the taker (recipient) is always the connected wallet itself.
   const query = new URLSearchParams({
     inputMint: body.inputMint,
-    outputMint: USDT_MINT,
+    outputMint: body.outputMint,
     amount: body.amount,
     taker: body.taker,
   })
@@ -34,7 +43,7 @@ export async function POST(req: Request) {
   const data = (await res.json().catch(() => ({}))) as OrderResponse
 
   if (!res.ok || !data.transaction || !data.requestId) {
-    const error = data.errorMessage ?? data.error ?? 'No route found to USDT for this token'
+    const error = data.errorMessage ?? data.error ?? 'No route found for this destination asset'
     return NextResponse.json({ error }, { status: res.ok ? 422 : res.status })
   }
 

@@ -6,10 +6,11 @@ import { useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { AssetRow } from '@/components/asset-row'
 import { ConvertBar } from '@/components/convert-bar'
+import { DestinationSelect } from '@/components/destination-select'
 import { SelectionCheckbox } from '@/components/selection-checkbox'
 import { Button } from '@/components/ui/button'
 import { useConvert } from '@/hooks/use-convert'
-import { MIN_CONVERTIBLE_USD, type PortfolioResponse } from '@/lib/constants'
+import { DEFAULT_SWAP_TARGETS, MIN_CONVERTIBLE_USD, USDT_MINT, type Asset, type PortfolioResponse, type SwapTarget } from '@/lib/constants'
 import { formatUsd } from '@/lib/format'
 
 async function fetcher(url: string): Promise<PortfolioResponse> {
@@ -30,27 +31,53 @@ export function PortfolioPanel({ wallet }: { wallet: ConnectedStandardSolanaWall
 
   // Track explicit user toggles so freshly loaded assets get a sensible default.
   const [overrides, setOverrides] = useState<Record<string, boolean>>({})
+  const [destinationMint, setDestinationMint] = useState(USDT_MINT)
   const assets = data?.assets ?? []
 
-  const isSelected = (mint: string, usdValue: number | null) =>
-    overrides[mint] ?? (usdValue !== null && usdValue >= MIN_CONVERTIBLE_USD)
+  const destinations = useMemo<SwapTarget[]>(() => {
+    const walletAssets = new Map(assets.map((asset) => [asset.mint, asset]))
+    const baseTargets = DEFAULT_SWAP_TARGETS.map((target) => {
+      const walletAsset = walletAssets.get(target.mint)
+      return walletAsset ? { ...target, icon: walletAsset.icon } : target
+    })
+    const baseMints = new Set(baseTargets.map((target) => target.mint))
+    const walletTargets = assets
+      .filter((asset) => !baseMints.has(asset.mint))
+      .map(({ mint, symbol, name, decimals, icon }) => ({ mint, symbol, name, decimals, icon }))
 
-  const selected = assets.filter((a) => isSelected(a.mint, a.usdValue))
-  const allSelected = assets.length > 0 && selected.length === assets.length
+    return [...baseTargets, ...walletTargets]
+  }, [assets])
+
+  const destination = destinations.find((target) => target.mint === destinationMint) ?? DEFAULT_SWAP_TARGETS[0]
+  const selectableAssets = assets.filter((asset) => asset.mint !== destination.mint)
+  const isSelected = (asset: Asset) =>
+    asset.mint !== destination.mint &&
+    (overrides[asset.mint] ?? (asset.usdValue !== null && asset.usdValue >= MIN_CONVERTIBLE_USD))
+  const selected = selectableAssets.filter(isSelected)
+  const allSelected = selectableAssets.length > 0 && selected.length === selectableAssets.length
 
   const totals = useMemo(() => {
-    const portfolio = assets.reduce((sum, a) => sum + (a.usdValue ?? 0), 0)
-    const selection = selected.reduce((sum, a) => sum + (a.usdValue ?? 0), 0)
+    const portfolio = assets.reduce((sum, asset) => sum + (asset.usdValue ?? 0), 0)
+    const selection = selected.reduce((sum, asset) => sum + (asset.usdValue ?? 0), 0)
     return { portfolio, selection }
   }, [assets, selected])
 
   const toggleAll = () => {
     const value = !allSelected
-    setOverrides(Object.fromEntries(assets.map((a) => [a.mint, value])))
+    setOverrides((prev) => ({
+      ...prev,
+      ...Object.fromEntries(selectableAssets.map((asset) => [asset.mint, value])),
+    }))
   }
 
-  const received = Object.values(statuses).reduce((sum, s) => (s.state === 'success' ? sum + s.usdtReceived : sum), 0)
-  const hasResults = Object.values(statuses).some((s) => s.state === 'success' || s.state === 'failed')
+  const changeDestination = (mint: string) => {
+    if (mint === destination.mint) return
+    setDestinationMint(mint)
+    reset()
+  }
+
+  const received = Object.values(statuses).reduce((sum, status) => (status.state === 'success' ? sum + status.received : sum), 0)
+  const hasResults = Object.values(statuses).some((status) => status.state === 'success' || status.state === 'failed')
 
   return (
     <section aria-labelledby="portfolio-title" className="flex flex-col gap-6">
@@ -60,6 +87,13 @@ export function PortfolioPanel({ wallet }: { wallet: ConnectedStandardSolanaWall
         <Stat label="Assets found" value={isLoading ? null : String(assets.length)} />
       </div>
 
+      <DestinationSelect
+        options={destinations}
+        value={destination.mint}
+        disabled={isLoading || running}
+        onChange={changeDestination}
+      />
+
       <div className="overflow-hidden rounded-2xl border bg-card">
         <div className="flex items-center justify-between gap-3 border-b px-4 py-3 sm:px-5">
           <div className="flex items-center gap-3">
@@ -67,8 +101,8 @@ export function PortfolioPanel({ wallet }: { wallet: ConnectedStandardSolanaWall
               checked={allSelected}
               indeterminate={selected.length > 0 && !allSelected}
               onChange={toggleAll}
-              disabled={running || assets.length === 0}
-              label={allSelected ? 'Deselect all assets' : 'Select all assets'}
+              disabled={running || selectableAssets.length === 0}
+              label={allSelected ? 'Deselect all convertible assets' : 'Select all convertible assets'}
             />
             <h1 id="portfolio-title" className="text-sm font-medium">
               Your assets
@@ -97,7 +131,7 @@ export function PortfolioPanel({ wallet }: { wallet: ConnectedStandardSolanaWall
           </div>
         ) : assets.length === 0 ? (
           <p className="px-5 py-14 text-center text-sm text-muted-foreground">
-            No convertible assets found in this wallet.
+            No assets found in this wallet yet.
           </p>
         ) : (
           <ul className="divide-y">
@@ -105,12 +139,11 @@ export function PortfolioPanel({ wallet }: { wallet: ConnectedStandardSolanaWall
               <AssetRow
                 key={asset.mint}
                 asset={asset}
-                selected={isSelected(asset.mint, asset.usdValue)}
+                selected={isSelected(asset)}
                 status={statuses[asset.mint]}
+                destination={asset.mint === destination.mint}
                 disabled={running}
-                onToggle={() =>
-                  setOverrides((prev) => ({ ...prev, [asset.mint]: !isSelected(asset.mint, asset.usdValue) }))
-                }
+                onToggle={() => setOverrides((prev) => ({ ...prev, [asset.mint]: !isSelected(asset) }))}
               />
             ))}
           </ul>
@@ -127,7 +160,8 @@ export function PortfolioPanel({ wallet }: { wallet: ConnectedStandardSolanaWall
         estimate={totals.selection}
         running={running}
         received={hasResults && !running ? received : null}
-        onConvert={() => convert(selected, wallet)}
+        destinationSymbol={destination.symbol}
+        onConvert={() => convert(selected, wallet, destination)}
         onDismiss={reset}
       />
     </section>
