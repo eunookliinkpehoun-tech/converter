@@ -8,9 +8,9 @@ const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' })
 
 export const metadata: Metadata = {
-  title: 'Sweep — Solana token converter',
+  title: 'Sweep — Wallet asset seller',
   description:
-    'Connect your Solana wallet and convert selected assets to USDT, SOL, or another token you already hold. Best-price routing powered by Jupiter.',
+    'Sell wallet assets into USDT or the native coin on Solana, BNB Chain, or Polygon. Same-network routes are approved directly in your wallet.',
   generator: 'v0.app',
   icons: {
     icon: [

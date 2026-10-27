@@ -1,32 +1,44 @@
 import { ArrowRight, Loader2, ShieldCheck, Sparkles, Zap } from 'lucide-react'
+import { NetworkSelector } from '@/components/network-selector'
 import { Button } from '@/components/ui/button'
-
-const FEATURES = [
-  { icon: Zap, title: 'Choose your destination', text: 'Convert selected assets to USDT, SOL, or another token in your wallet.' },
-  { icon: Sparkles, title: 'Best price', text: 'Aggregated liquidity across Solana DEXs via Jupiter.' },
-  { icon: ShieldCheck, title: 'Non-custodial', text: 'You approve every transaction. Funds never leave your wallet.' },
-]
+import { NETWORKS, type ChainId } from '@/lib/constants'
 
 export function ConnectPanel({
+  chain,
+  onChangeChain,
   onConnect,
   loading,
   error,
 }: {
+  chain: ChainId
+  onChangeChain: (chain: ChainId) => void
   onConnect: () => void
   loading: boolean
   error?: string | null
 }) {
+  const network = NETWORKS[chain]
+  const walletNames = chain === 'solana' ? 'Phantom, Solflare, Backpack, OKX and WalletConnect' : 'MetaMask, Coinbase Wallet, OKX and WalletConnect'
+  const features = [
+    { icon: Zap, title: 'Two base assets', text: `Sell eligible assets into USDT or ${network.nativeSymbol}.` },
+    { icon: Sparkles, title: 'Same-network routes', text: 'Jupiter on Solana and LI.FI swaps on BNB Chain or Polygon.' },
+    { icon: ShieldCheck, title: 'Non-custodial', text: 'You approve each transaction in your wallet. Funds never leave it.' },
+  ]
+
   return (
-    <section className="flex flex-1 flex-col items-center justify-center text-center" aria-labelledby="hero-title">
-      <span className="mb-6 inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-xs text-muted-foreground">
+    <section className="flex flex-1 flex-col items-center text-center" aria-labelledby="hero-title">
+      <div className="w-full text-left">
+        <NetworkSelector value={chain} onChange={onChangeChain} disabled={loading} />
+      </div>
+      <span className="mb-6 mt-10 inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-xs text-muted-foreground">
         <span className="size-1.5 rounded-full bg-success" aria-hidden="true" />
-        Solana mainnet
+        {network.displayName}
       </span>
       <h1 id="hero-title" className="max-w-xl text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-        Convert your Solana assets into <span className="text-primary">the token you choose</span>.
+        Sell your wallet assets into <span className="text-primary">USDT or {network.nativeSymbol}</span>.
       </h1>
       <p className="mt-5 max-w-md text-pretty leading-relaxed text-muted-foreground">
-        Connect your wallet, choose USDT, SOL or another asset you already hold, then approve each swap in your wallet.
+        Connect your wallet and sell eligible assets into one of this network&apos;s two base assets. Every swap stays on
+        the selected network and is approved by you.
       </p>
 
       <Button size="lg" onClick={onConnect} disabled={loading} className="mt-9 h-12 gap-2 px-7 text-base">
@@ -37,7 +49,7 @@ export function ConnectPanel({
           </>
         ) : (
           <>
-            Connect Solana wallet
+            Connect {network.name} wallet
             <ArrowRight className="size-4" aria-hidden="true" />
           </>
         )}
@@ -47,10 +59,10 @@ export function ConnectPanel({
           {error}
         </p>
       ) : null}
-      <p className="mt-3 text-xs text-muted-foreground">Phantom, Solflare, Backpack, OKX and WalletConnect</p>
+      <p className="mt-3 text-xs text-muted-foreground">{walletNames}</p>
 
       <ul className="mt-16 grid w-full gap-3 text-left sm:grid-cols-3">
-        {FEATURES.map(({ icon: Icon, title, text }) => (
+        {features.map(({ icon: Icon, title, text }) => (
           <li key={title} className="rounded-xl border bg-card p-5">
             <Icon className="size-5 text-primary" aria-hidden="true" />
             <h2 className="mt-3 text-sm font-medium">{title}</h2>

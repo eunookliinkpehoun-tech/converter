@@ -2,11 +2,12 @@
 
 import { BadgeCheck, CheckCircle2, ExternalLink, Loader2, PenLine, XCircle } from 'lucide-react'
 import { SelectionCheckbox } from '@/components/selection-checkbox'
-import type { Asset, ConversionStatus } from '@/lib/constants'
+import { NETWORKS, type Asset, type ChainId, type ConversionStatus } from '@/lib/constants'
 import { formatAmount, formatUsd } from '@/lib/format'
 
 type Props = {
   asset: Asset
+  chain: ChainId
   selected: boolean
   status?: ConversionStatus
   destination: boolean
@@ -14,7 +15,7 @@ type Props = {
   onToggle: () => void
 }
 
-export function AssetRow({ asset, selected, status, destination, disabled, onToggle }: Props) {
+export function AssetRow({ asset, chain, selected, status, destination, disabled, onToggle }: Props) {
   return (
     <li
       className={`flex items-center gap-3 px-4 py-3.5 transition-colors sm:gap-4 sm:px-5 ${
@@ -24,7 +25,7 @@ export function AssetRow({ asset, selected, status, destination, disabled, onTog
       <SelectionCheckbox
         checked={selected}
         onChange={onToggle}
-        disabled={disabled || destination}
+        disabled={disabled || destination || asset.amount === '0'}
         label={destination ? `${asset.symbol} is the destination token` : `${selected ? 'Deselect' : 'Select'} ${asset.symbol}`}
       />
 
@@ -36,20 +37,28 @@ export function AssetRow({ asset, selected, status, destination, disabled, onTog
           {asset.verified && <BadgeCheck className="size-3.5 shrink-0 text-primary" aria-label="Verified token" />}
         </div>
         <p className="truncate text-xs text-muted-foreground">{asset.name}</p>
+        {status?.state === 'awaiting-signature' && status.detail ? (
+          <p className="mt-1 line-clamp-2 text-[10px] leading-snug text-warning">{status.detail}</p>
+        ) : null}
       </div>
 
       <div className="text-right">
         <p className="font-mono text-sm tabular-nums">{formatUsd(asset.usdValue)}</p>
         <p className="font-mono text-xs tabular-nums text-muted-foreground">
-          {formatAmount(asset.uiAmount)} {asset.symbol}
+          {formatAmount(asset.walletAmount ?? asset.uiAmount)} {asset.symbol}
         </p>
+        {asset.walletAmount !== undefined && asset.uiAmount < asset.walletAmount ? (
+          <p className="font-mono text-[10px] tabular-nums text-muted-foreground">
+            {formatAmount(asset.uiAmount)} available to sell
+          </p>
+        ) : null}
       </div>
 
       <div className="hidden w-28 justify-end sm:flex">
-        {destination ? <DestinationBadge /> : <StatusBadge status={status} />}
+        {destination ? <DestinationBadge /> : <StatusBadge chain={chain} status={status} />}
       </div>
       <div className="flex sm:hidden">
-        {destination ? <DestinationBadge compact /> : <StatusBadge status={status} compact />}
+        {destination ? <DestinationBadge compact /> : <StatusBadge chain={chain} status={status} compact />}
       </div>
     </li>
   )
@@ -77,7 +86,7 @@ function DestinationBadge({ compact }: { compact?: boolean }) {
   )
 }
 
-function StatusBadge({ status, compact }: { status?: ConversionStatus; compact?: boolean }) {
+function StatusBadge({ chain, status, compact }: { chain: ChainId; status?: ConversionStatus; compact?: boolean }) {
   if (!status || status.state === 'idle') return null
 
   const base = 'inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium'
@@ -96,19 +105,19 @@ function StatusBadge({ status, compact }: { status?: ConversionStatus; compact?:
       return (
         <span className={`${base} bg-warning/15 text-warning`} role="status">
           <PenLine className="size-3" aria-hidden="true" />
-          {compact ? <span className="sr-only">Approve in wallet</span> : 'Approve'}
+          {compact ? <span className="sr-only">Review and sign in wallet</span> : 'Sign'}
         </span>
       )
     case 'success':
       return (
         <a
-          href={`https://solscan.io/tx/${status.signature}`}
+          href={`${NETWORKS[chain].explorerTxUrl}${status.signature}`}
           target="_blank"
           rel="noopener noreferrer"
           className={`${base} bg-success/15 text-success hover:bg-success/25`}
         >
           <CheckCircle2 className="size-3" aria-hidden="true" />
-          {compact ? <span className="sr-only">Converted, view transaction</span> : 'Done'}
+          {compact ? <span className="sr-only">Sold, view transaction</span> : 'Sold'}
           {!compact && <ExternalLink className="size-3" aria-hidden="true" />}
         </a>
       )

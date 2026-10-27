@@ -22,9 +22,9 @@ export function ConvertBar({ count, estimate, running, received, destinationSymb
           <div className="flex items-center gap-3" role="status">
             <CheckCircle2 className="size-5 shrink-0 text-success" aria-hidden="true" />
             <div>
-              <p className="text-sm font-medium">Conversion complete</p>
-              <p className="text-xs text-muted-foreground">
-                Received <span className="font-mono text-foreground">{formatAmount(received)} {destinationSymbol}</span>
+            <p className="text-sm font-medium">Sale complete</p>
+            <p className="text-xs text-muted-foreground">
+                Estimated received <span className="font-mono text-foreground">{formatAmount(received)} {destinationSymbol}</span>
               </p>
             </div>
             <Button variant="ghost" size="icon" onClick={onDismiss} aria-label="Dismiss summary" className="ml-auto sm:ml-2">
@@ -51,12 +51,12 @@ export function ConvertBar({ count, estimate, running, received, destinationSymb
           {running ? (
             <>
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              Converting to {destinationSymbol}…
+              Selling to {destinationSymbol}…
             </>
           ) : (
             <>
               <ArrowRightLeft className="size-4" aria-hidden="true" />
-              Convert to {destinationSymbol}
+              Sell to {destinationSymbol}
             </>
           )}
         </Button>
