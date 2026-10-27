@@ -9,7 +9,7 @@ import { NETWORKS } from '@/lib/constants'
 const solanaConnectors = toSolanaWalletConnectors({ shouldAutoConnect: true })
 const bnbChain = {
   id: 56,
-  name: 'BNB Smart Chain',
+  name: 'BNB Smart',
   nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
   rpcUrls: { default: { http: [NETWORKS.bnb.rpcUrl!] } },
   blockExplorers: { default: { name: 'BscScan', url: 'https://bscscan.com' } },
