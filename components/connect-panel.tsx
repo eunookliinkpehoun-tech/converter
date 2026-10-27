@@ -19,9 +19,9 @@ export function ConnectPanel({
   const network = NETWORKS[chain]
   const walletNames = chain === 'solana' ? 'Phantom, Solflare, Backpack, OKX and WalletConnect' : 'MetaMask, Coinbase Wallet, OKX and WalletConnect'
   const features = [
-    { icon: Zap, title: 'Two base assets', text: `Sell eligible assets into USDT or ${network.nativeSymbol}.` },
+    { icon: Zap, title: 'Two base assets', text: `Sell spendable assets into USDT or ${network.nativeSymbol}.` },
     { icon: Sparkles, title: 'Same-network routes', text: 'Jupiter on Solana and LI.FI swaps on BNB Chain or Polygon.' },
-    { icon: ShieldCheck, title: 'Non-custodial', text: 'You approve each transaction in your wallet. Funds never leave it.' },
+    { icon: ShieldCheck, title: 'Non-custodial', text: 'You approve each sale in your wallet. Assets remain in your wallet until confirmed.' },
   ]
 
   return (
@@ -37,8 +37,8 @@ export function ConnectPanel({
         Sell your wallet assets into <span className="text-primary">USDT or {network.nativeSymbol}</span>.
       </h1>
       <p className="mt-5 max-w-md text-pretty leading-relaxed text-muted-foreground">
-        Connect your wallet and sell eligible assets into one of this network&apos;s two base assets. Every swap stays on
-        the selected network and is approved by you.
+        Spendable balances start selected; deselect anything you want to keep. Each sale stays on this network and must
+        be approved in your wallet.
       </p>
 
       <Button size="lg" onClick={onConnect} disabled={loading} className="mt-9 h-12 gap-2 px-7 text-base">

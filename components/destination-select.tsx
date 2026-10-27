@@ -1,6 +1,7 @@
 'use client'
 
-import { ChevronDown } from 'lucide-react'
+import { FieldDescription, FieldLegend, FieldSet } from '@/components/ui/field'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { SwapTarget } from '@/lib/constants'
 
 type Props = {
@@ -14,30 +15,35 @@ export function DestinationSelect({ options, value, disabled, onChange }: Props)
   const selected = options.find((target) => target.mint === value)
 
   return (
-    <div className="rounded-xl border bg-card px-4 py-4 sm:px-5">
-      <label htmlFor="destination-asset" className="flex flex-col gap-2">
-        <span className="text-sm font-medium">Sell into</span>
-        <span className="relative">
-          <select
-            id="destination-asset"
-            value={value}
-            disabled={disabled}
-            onChange={(event) => onChange(event.currentTarget.value)}
-            aria-describedby="destination-asset-help"
-            className="h-11 w-full appearance-none rounded-lg border border-input bg-background px-3 pr-10 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {options.map((target) => (
-              <option key={target.mint} value={target.mint}>
-                {target.symbol} — {target.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-        </span>
-      </label>
-      <p id="destination-asset-help" className="mt-2 text-xs leading-relaxed text-muted-foreground">
+    <FieldSet className="rounded-xl border bg-card px-4 py-4 sm:px-5">
+      <FieldLegend variant="label">Sell into</FieldLegend>
+      <FieldDescription id="destination-asset-help" className="text-xs leading-relaxed">
         Selected assets will be sold into {selected?.symbol ?? 'the base asset'} on this network only. No cross-chain transfer is used.
-      </p>
-    </div>
+      </FieldDescription>
+      <ToggleGroup
+        aria-label="Asset to receive"
+        aria-describedby="destination-asset-help"
+        value={[value]}
+        onValueChange={(selection) => {
+          const next = selection[0]
+          if (next) onChange(next)
+        }}
+        disabled={disabled}
+        multiple={false}
+        variant="outline"
+        className="w-full"
+      >
+        {options.map((target) => (
+          <ToggleGroupItem
+            key={target.mint}
+            value={target.mint}
+            className="flex h-auto min-h-12 flex-1 flex-col items-start justify-center gap-1 px-3 py-2 text-left"
+          >
+            <span className="text-sm font-medium">{target.symbol}</span>
+            <span className="line-clamp-1 text-[10px] text-muted-foreground">{target.name}</span>
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+    </FieldSet>
   )
 }

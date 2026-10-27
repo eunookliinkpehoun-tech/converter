@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button'
 import { formatUsd } from '@/lib/format'
 import {
   getBaseTargets,
-  MIN_CONVERTIBLE_USD,
   NETWORKS,
   type Asset,
   type ChainId,
@@ -72,8 +71,9 @@ export function PortfolioCore({
   const isSelected = (asset: Asset) =>
     !sameMint(chain, asset.mint, destination.mint) &&
     asset.amount !== '0' &&
-    (overrides[asset.mint] ?? (asset.usdValue !== null && asset.usdValue >= MIN_CONVERTIBLE_USD))
+    (overrides[asset.mint] ?? true)
   const selected = selectableAssets.filter(isSelected)
+  const unpricedCount = selected.filter((asset) => asset.usdValue === null).length
   const allSelected = selectableAssets.length > 0 && selected.length === selectableAssets.length
 
   const totals = useMemo(() => {
@@ -101,7 +101,10 @@ export function PortfolioCore({
 
   const successful = Object.values(statuses).filter((status) => status.state === 'success')
   const received = successful.reduce((sum, status) => sum + status.received, 0)
-  const feeNote = `A reserve of ${network.feeReserveDisplay} is kept for network fees. EVM quotes use a 1% slippage limit; final routes may change before confirmation.`
+  const feeNote =
+    chain === 'solana'
+      ? `A reserve of ${network.feeReserveDisplay} is kept for network fees. Jupiter quotes may change before confirmation.`
+      : `A reserve of ${network.feeReserveDisplay} is kept for network fees. EVM quotes use a 1% slippage limit and may change before confirmation.`
 
   return (
     <section aria-labelledby="portfolio-title" className="flex flex-col gap-6">
@@ -190,7 +193,9 @@ export function PortfolioCore({
         running={running}
         received={successful.length > 0 && !running ? received : null}
         destinationSymbol={destination.symbol}
-        onConvert={() => onSell(selected, destination)}
+        receivedLabel={chain === 'solana' ? 'Received' : 'Minimum expected'}
+        unpricedCount={unpricedCount}
+        onSell={() => onSell(selected, destination)}
         onDismiss={onDismiss}
       />
     </section>

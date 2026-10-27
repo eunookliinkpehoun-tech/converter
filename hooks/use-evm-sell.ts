@@ -80,20 +80,26 @@ async function sendTransaction(
     throw new Error('The swap provider returned invalid transaction data')
   }
 
+  const value = rpcQuantity(request.value)
+  if (!value) throw new Error('The swap provider returned an invalid transaction value')
+
   const params: EvmTransactionParams = {
     from: wallet.address as Hex,
     to: request.to as Hex,
     data: request.data as Hex,
-    value: rpcQuantity(request.value) ?? '0x0',
+    value,
   }
   const gas = rpcQuantity(request.gasLimit)
   const gasPrice = rpcQuantity(request.gasPrice)
   const maxFeePerGas = rpcQuantity(request.maxFeePerGas)
   const maxPriorityFeePerGas = rpcQuantity(request.maxPriorityFeePerGas)
   if (gas) params.gas = gas
-  if (gasPrice) params.gasPrice = gasPrice
-  if (maxFeePerGas) params.maxFeePerGas = maxFeePerGas
-  if (maxPriorityFeePerGas) params.maxPriorityFeePerGas = maxPriorityFeePerGas
+  if (maxFeePerGas || maxPriorityFeePerGas) {
+    if (maxFeePerGas) params.maxFeePerGas = maxFeePerGas
+    if (maxPriorityFeePerGas) params.maxPriorityFeePerGas = maxPriorityFeePerGas
+  } else if (gasPrice) {
+    params.gasPrice = gasPrice
+  }
 
   const hash = await provider.request({ method: 'eth_sendTransaction', params: [params] })
   if (typeof hash !== 'string' || !/^0x[0-9a-f]{64}$/i.test(hash)) {
@@ -183,7 +189,11 @@ export function useEvmSell(onFinished: () => void) {
             }
 
             if (Date.now() > quote.expiresAt) quote = await requestQuote(chain, asset, wallet, destination)
-            if (quote.chainId !== chainId || !/^\d+$/.test(quote.estimate.toAmountMin)) {
+            if (
+              quote.chainId !== chainId ||
+              !/^\d+$/.test(quote.estimate.toAmountMin) ||
+              BigInt(quote.estimate.toAmountMin) <= BigInt(0)
+            ) {
               throw new Error('The swap provider returned an invalid quote')
             }
             const minimumReceived = Number(formatEvmUnits(BigInt(quote.estimate.toAmountMin), destination.decimals))

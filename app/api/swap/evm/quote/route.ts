@@ -39,6 +39,12 @@ function asOptionalString(value: string | number | undefined): string | undefine
   return value === undefined ? undefined : String(value)
 }
 
+function isRpcQuantity(value: string | number | undefined): boolean {
+  if (value === undefined) return true
+  if (typeof value === 'number') return Number.isSafeInteger(value) && value >= 0
+  return /^(?:0x[0-9a-f]+|\d+)$/i.test(value)
+}
+
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as {
     chain?: unknown
@@ -118,8 +124,14 @@ export async function POST(request: Request) {
     typeof transaction.data !== 'string' ||
     !/^0x[0-9a-f]*$/i.test(transaction.data) ||
     transaction.data.length > 300_000 ||
-    !quote.estimate?.toAmount ||
-    !quote.estimate.toAmountMin
+    !isRpcQuantity(transaction.value) ||
+    !isRpcQuantity(transaction.gasLimit) ||
+    !isRpcQuantity(transaction.gasPrice) ||
+    !isRpcQuantity(transaction.maxFeePerGas) ||
+    !isRpcQuantity(transaction.maxPriorityFeePerGas) ||
+    (inputMint === EVM_NATIVE_ADDRESS.toLowerCase() && transaction.value === undefined) ||
+    !isPositiveIntegerString(quote.estimate?.toAmount) ||
+    !isPositiveIntegerString(quote.estimate?.toAmountMin)
   ) {
     return NextResponse.json({ error: 'The swap provider returned an invalid quote' }, { status: 502 })
   }

@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRightLeft, CheckCircle2, Loader2, X } from 'lucide-react'
+import { ArrowDownToLine, CheckCircle2, Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatAmount, formatUsd } from '@/lib/format'
 
@@ -10,11 +10,13 @@ type Props = {
   running: boolean
   received: number | null
   destinationSymbol: string
-  onConvert: () => void
+  receivedLabel: string
+  unpricedCount: number
+  onSell: () => void
   onDismiss: () => void
 }
 
-export function ConvertBar({ count, estimate, running, received, destinationSymbol, onConvert, onDismiss }: Props) {
+export function ConvertBar({ count, estimate, running, received, destinationSymbol, receivedLabel, unpricedCount, onSell, onDismiss }: Props) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -24,8 +26,9 @@ export function ConvertBar({ count, estimate, running, received, destinationSymb
             <div>
             <p className="text-sm font-medium">Sale complete</p>
             <p className="text-xs text-muted-foreground">
-                Estimated received <span className="font-mono text-foreground">{formatAmount(received)} {destinationSymbol}</span>
-              </p>
+              {receivedLabel}{' '}
+              <span className="font-mono text-foreground">{formatAmount(received)} {destinationSymbol}</span>
+            </p>
             </div>
             <Button variant="ghost" size="icon" onClick={onDismiss} aria-label="Dismiss summary" className="ml-auto sm:ml-2">
               <X className="size-4" aria-hidden="true" />
@@ -38,13 +41,16 @@ export function ConvertBar({ count, estimate, running, received, destinationSymb
             </p>
             <p className="text-xs text-muted-foreground">
               Estimated value <span className="font-mono text-foreground">{formatUsd(estimate)}</span> before fees
+              {unpricedCount > 0 ? (
+                <span className="text-warning"> · {unpricedCount} {unpricedCount === 1 ? 'token price unavailable' : 'token prices unavailable'}</span>
+              ) : null}
             </p>
           </div>
         )}
 
         <Button
           size="lg"
-          onClick={onConvert}
+          onClick={onSell}
           disabled={count === 0 || running}
           className="h-12 w-full gap-2 px-6 text-base sm:w-auto"
         >
@@ -55,7 +61,7 @@ export function ConvertBar({ count, estimate, running, received, destinationSymb
             </>
           ) : (
             <>
-              <ArrowRightLeft className="size-4" aria-hidden="true" />
+              <ArrowDownToLine className="size-4" aria-hidden="true" />
               Sell to {destinationSymbol}
             </>
           )}

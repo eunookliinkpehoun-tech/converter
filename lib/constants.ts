@@ -93,7 +93,6 @@ export const NETWORKS: Record<ChainId, NetworkConfig> = {
 }
 
 export const AVAILABLE_CHAINS: ChainId[] = ['solana', 'bnb', 'polygon']
-export const MIN_CONVERTIBLE_USD = 0.01
 
 export type Asset = {
   mint: string

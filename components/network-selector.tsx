@@ -1,4 +1,7 @@
-import { ChevronDown } from 'lucide-react'
+'use client'
+
+import { FieldDescription, FieldLegend, FieldSet } from '@/components/ui/field'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { AVAILABLE_CHAINS, NETWORKS, type ChainId } from '@/lib/constants'
 
 type Props = {
@@ -7,34 +10,43 @@ type Props = {
   onChange: (chain: ChainId) => void
 }
 
+const chainLabels: Record<ChainId, string> = {
+  solana: 'Solana',
+  bnb: 'BNB Chain',
+  polygon: 'Polygon',
+}
+
 export function NetworkSelector({ value, disabled = false, onChange }: Props) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border bg-card px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-      <div>
-        <label htmlFor="wallet-network" className="text-sm font-medium">
-          Wallet network
-        </label>
-        <p id="wallet-network-help" className="mt-1 text-xs text-muted-foreground">
-          Swaps stay on this network. Cross-chain transfers are not used.
-        </p>
-      </div>
-      <span className="relative w-full sm:w-56">
-        <select
-          id="wallet-network"
-          value={value}
-          disabled={disabled}
-          onChange={(event) => onChange(event.currentTarget.value as ChainId)}
-          aria-describedby="wallet-network-help"
-          className="h-11 w-full appearance-none rounded-lg border border-input bg-background px-3 pr-10 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {AVAILABLE_CHAINS.map((chain) => (
-            <option key={chain} value={chain}>
-              {NETWORKS[chain].displayName}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-      </span>
-    </div>
+    <FieldSet className="grid gap-x-6 gap-y-1 rounded-xl border bg-card px-4 py-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-5">
+      <FieldLegend variant="label" className="mb-0">Wallet network</FieldLegend>
+      <FieldDescription id="wallet-network-help" className="text-xs sm:row-start-2">
+        Swaps stay on this network. Cross-chain transfers are not used.
+      </FieldDescription>
+      <ToggleGroup
+        aria-label="Wallet network"
+        aria-describedby="wallet-network-help"
+        value={[value]}
+        onValueChange={(selection) => {
+          const next = selection[0] as ChainId | undefined
+          if (next && AVAILABLE_CHAINS.includes(next)) onChange(next)
+        }}
+        disabled={disabled}
+        multiple={false}
+        variant="outline"
+        size="sm"
+        className="w-full sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:w-fit sm:justify-self-end"
+      >
+        {AVAILABLE_CHAINS.map((chain) => (
+          <ToggleGroupItem
+            key={chain}
+            value={chain}
+            className="min-w-0 flex-1 whitespace-nowrap px-2 sm:flex-none sm:px-3"
+          >
+            {chainLabels[chain] || NETWORKS[chain].displayName}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+    </FieldSet>
   )
 }
