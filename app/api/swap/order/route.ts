@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     !isSolanaAddress(body.taker) ||
     !isPositiveIntegerString(body.amount)
   ) {
-    return NextResponse.json({ error: 'Invalid swap request' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid sale request' }, { status: 400 })
   }
   if (body.inputMint === body.outputMint) {
     return NextResponse.json({ error: 'Source and destination assets must be different' }, { status: 400 })

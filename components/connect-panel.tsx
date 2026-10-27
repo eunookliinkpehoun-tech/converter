@@ -20,7 +20,7 @@ export function ConnectPanel({
   const walletNames = chain === 'solana' ? 'Phantom, Solflare, Backpack, OKX and WalletConnect' : 'MetaMask, Coinbase Wallet, OKX and WalletConnect'
   const features = [
     { icon: Zap, title: 'Two base assets', text: `Sell spendable assets into USDT or ${network.nativeSymbol}.` },
-    { icon: Sparkles, title: 'Same-network routes', text: 'Jupiter on Solana and LI.FI swaps on BNB Chain or Polygon.' },
+    { icon: Sparkles, title: 'Same-network sales', text: 'Jupiter and LI.FI route each sale on this network only. Nothing is bridged.' },
     { icon: ShieldCheck, title: 'Non-custodial', text: 'You approve each sale in your wallet. Assets remain in your wallet until confirmed.' },
   ]
 

@@ -21,7 +21,7 @@ export function NetworkSelector({ value, disabled = false, onChange }: Props) {
     <FieldSet className="grid gap-x-6 gap-y-1 rounded-xl border bg-card px-4 py-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-5">
       <FieldLegend variant="label" className="mb-0">Wallet network</FieldLegend>
       <FieldDescription id="wallet-network-help" className="text-xs sm:row-start-2">
-        Swaps stay on this network. Cross-chain transfers are not used.
+          Assets are sold on this network only; nothing is bridged to another chain.
       </FieldDescription>
       <ToggleGroup
         aria-label="Wallet network"

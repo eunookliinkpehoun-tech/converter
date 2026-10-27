@@ -77,11 +77,11 @@ async function sendTransaction(
   request: TransactionRequest,
 ): Promise<Hex> {
   if (!isEvmAddress(request.to) || !/^0x[0-9a-f]*$/i.test(request.data)) {
-    throw new Error('The swap provider returned invalid transaction data')
+    throw new Error('The sale route returned invalid transaction data')
   }
 
   const value = rpcQuantity(request.value)
-  if (!value) throw new Error('The swap provider returned an invalid transaction value')
+  if (!value) throw new Error('The sale route returned an invalid transaction value')
 
   const params: EvmTransactionParams = {
     from: wallet.address as Hex,
@@ -194,7 +194,7 @@ export function useEvmSell(onFinished: () => void) {
               !/^\d+$/.test(quote.estimate.toAmountMin) ||
               BigInt(quote.estimate.toAmountMin) <= BigInt(0)
             ) {
-              throw new Error('The swap provider returned an invalid quote')
+              throw new Error('The sale route returned an invalid estimate')
             }
             const minimumReceived = Number(formatEvmUnits(BigInt(quote.estimate.toAmountMin), destination.decimals))
             setStatus(asset.mint, {
@@ -204,7 +204,7 @@ export function useEvmSell(onFinished: () => void) {
             const swapHash = await sendTransaction(wallet, provider, quote.transactionRequest)
             setStatus(asset.mint, { state: 'executing' })
             const swapConfirmed = await waitForTransaction(provider, swapHash)
-            if (!swapConfirmed) throw new Error('Swap failed on-chain')
+            if (!swapConfirmed) throw new Error('Sale failed on-chain')
 
             setStatus(asset.mint, {
               state: 'success',

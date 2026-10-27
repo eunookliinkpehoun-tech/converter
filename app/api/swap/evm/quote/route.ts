@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     !isEvmAddress(body.taker) ||
     !isPositiveIntegerString(body.amount)
   ) {
-    return NextResponse.json({ error: 'Invalid same-network swap request' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid same-network sale request' }, { status: 400 })
   }
 
   const network = NETWORKS[body.chain]
@@ -133,12 +133,12 @@ export async function POST(request: Request) {
     !isPositiveIntegerString(quote.estimate?.toAmount) ||
     !isPositiveIntegerString(quote.estimate?.toAmountMin)
   ) {
-    return NextResponse.json({ error: 'The swap provider returned an invalid quote' }, { status: 502 })
+    return NextResponse.json({ error: 'The sale provider returned an invalid estimate' }, { status: 502 })
   }
 
   const approvalAddress = quote.estimate.approvalAddress
   if (approvalAddress && !isEvmAddress(approvalAddress)) {
-    return NextResponse.json({ error: 'The swap provider returned an invalid approval address' }, { status: 502 })
+    return NextResponse.json({ error: 'The sale provider returned an invalid approval address' }, { status: 502 })
   }
 
   return NextResponse.json({

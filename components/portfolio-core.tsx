@@ -103,8 +103,8 @@ export function PortfolioCore({
   const received = successful.reduce((sum, status) => sum + status.received, 0)
   const feeNote =
     chain === 'solana'
-      ? `A reserve of ${network.feeReserveDisplay} is kept for network fees. Jupiter quotes may change before confirmation.`
-      : `A reserve of ${network.feeReserveDisplay} is kept for network fees. EVM quotes use a 1% slippage limit and may change before confirmation.`
+      ? `A reserve of ${network.feeReserveDisplay} is kept for network fees. The sale estimate may change before you approve it.`
+      : `A reserve of ${network.feeReserveDisplay} is kept for network fees. Sale estimates use a 1% slippage limit and may change before approval.`
 
   return (
     <section aria-labelledby="portfolio-title" className="flex flex-col gap-6">
