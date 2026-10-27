@@ -22,6 +22,7 @@ export function Providers({ children }: { children: ReactNode }) {
           theme: 'dark',
           accentColor: '#2fcf9a',
           walletChainType: 'solana-only',
+          showWalletLoginFirst: true,
           walletList: SOLANA_WALLET_LIST,
         },
         externalWallets: {
